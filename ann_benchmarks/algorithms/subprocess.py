@@ -61,13 +61,14 @@ assigning value '%s' to option '%s' failed""" % (value, key)
 transitioning to training mode failed"""
         return self._program
 
-    def __init__(self, args, encoder, params):
+    def __init__(self, args, encoder, params, builds_graph = False):
         self.name = "Subprocess(program = %s, %s)" % \
             (basename(args[0]), str(params))
         self._program = None
         self._args = args
         self._encoder = encoder
         self._params = params
+        self._builds_graph = builds_graph
 
     def get_memory_usage(self):
         if not self._program:
@@ -85,9 +86,18 @@ encoded training point '%s' was rejected""" % d
 transitioning to query mode failed"""
 
     def query(self, v, n):
-        d = Subprocess._quote(self._encoder(v))
+        if self.builds_graph():
+            d = int(v)
+        else:
+            d = Subprocess._quote(self._encoder(v))
         self._write("%s %d" % (d, n))
         return self._handle_query_response()
+
+    def builds_graph(self):
+        return self._builds_graph
+
+    def set_count(self, count):
+        self._params['count'] = count
 
     def _handle_query_response(self):
         status = self._line()
