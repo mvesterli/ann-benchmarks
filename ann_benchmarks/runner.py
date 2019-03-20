@@ -24,6 +24,25 @@ from ann_benchmarks.algorithms.definitions import Definition, instantiate_algori
 from ann_benchmarks.distance import metrics
 from ann_benchmarks.results import store_results
 
+def check_graph(algo, X_train, X_test, distance, count):
+    results = []
+    for idx, v in enumerate(X_test):
+        candidates = algo.query(idx, count)
+        candidates = [
+            (int(c), float(metrics[distance]['distance'](v, X_train[c])))
+            for c in candidates
+        ]
+        if len(candidates) != count:
+            print('warning: algorithm %s returned %d results, but count is %d' % (algo, len(candidates), count))
+        # First value is the query time, which is irrelevant.
+        results.append((0, candidates))
+    attrs = {
+        "name": str(algo),
+        "distance": distance,
+        "best_search_time": 0,
+        "candidates": 0
+    }
+    return (attrs, results)
 
 def run_individual_query(algo, X_train, X_test, distance, count, run_count, batch):
     prepared_queries = \
@@ -84,14 +103,12 @@ def run_individual_query(algo, X_train, X_test, distance, count, run_count, batc
 
     verbose = hasattr(algo, "query_verbose")
     attrs = {
-        "batch_mode": batch,
         "best_search_time": best_search_time,
         "candidates": avg_candidates,
         "expect_extra": verbose,
         "name": str(algo),
         "run_count": run_count,
-        "distance": distance,
-        "count": int(count)
+        "distance": distance
     }
     return (attrs, results)
 
@@ -107,6 +124,12 @@ function""" % (definition.module, definition.constructor, definition.arguments)
     D = get_dataset(dataset)
     X_train = numpy.array(D['train'])
     X_test = numpy.array(D['test'])
+    if algo.builds_graph():
+        # Test data first to avoid converting test set index to graph index
+        X_train = numpy.concatenate((X_test, X_train))
+        # The protocol expects the count to be given at query time, so it has
+        # to be set as a parameter beforehand.
+        algo.set_count(count)
     distance = D.attrs['distance']
     print('got a train set of size (%d * %d)' % X_train.shape)
     print('got %d queries' % len(X_test))
@@ -119,6 +142,7 @@ function""" % (definition.module, definition.constructor, definition.arguments)
         t0 = time.time()
         memory_usage_before = algo.get_memory_usage()
         algo.fit(X_train)
+
         build_time = time.time() - t0
         index_size = algo.get_memory_usage() - memory_usage_before
         print('Built index in', build_time)
@@ -135,12 +159,17 @@ function""" % (definition.module, definition.constructor, definition.arguments)
                     (pos, len(query_argument_groups)))
             if query_arguments:
                 algo.set_query_arguments(*query_arguments)
-            descriptor, results = run_individual_query(algo, X_train, X_test,
+            if algo.builds_graph():
+                descriptor, results = check_graph(algo, X_train, X_test, distance, count)
+            else:
+                descriptor, results = run_individual_query(algo, X_train, X_test,
                     distance, count, run_count, batch)
             descriptor["build_time"] = build_time
             descriptor["index_size"] = index_size
             descriptor["algo"] = get_algorithm_name(definition.algorithm, batch)
             descriptor["dataset"] = dataset
+            descriptor["count"] = int(count)
+            descriptor["batch_mode"] = batch
             store_results(dataset, count, definition,
                     query_arguments, descriptor, results, batch)
     finally:

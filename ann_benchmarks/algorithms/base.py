@@ -25,3 +25,7 @@ class BaseANN(object):
 
     def __str__(self):
         return self.name
+
+    def builds_graph(self):
+        return False
+
