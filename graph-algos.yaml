@@ -17,4 +17,12 @@ float:
         kgraph:
           args: { "L": [25, 50, 100], "recall": [0.2, 0.5, 0.7, 0.8, 0.9, 0.95, 0.99] }
   angular: {}
-  euclidean: {}
+  euclidean:
+    rknng:
+      docker-tag: ann-benchmarks-rknng
+      module: ann_benchmarks.algorithms.graph.subprocess
+      constructor: FloatSubprocess
+      base-args: [["rknng/annbenchmark_wrapper"]]
+      run-groups:
+        rknng:
+          args: { "window_width": [10, 15, 20, 25], "delta": [0.01, 0.02, 0.05], "nndes_start": [0.1, 0.2] }
