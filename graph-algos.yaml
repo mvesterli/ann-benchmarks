@@ -26,3 +26,11 @@ float:
       run-groups:
         rknng:
           args: { "window_width": [10, 15, 20, 25], "delta": [0.01, 0.02, 0.05], "nndes_start": [0.1, 0.2] }
+    efanna:
+      docker-tag: ann-benchmarks-efanna
+      module: ann_benchmarks.algorithms.graph.subprocess
+      constructor: FloatSubprocess
+      base-args: [["efanna/annbenchmark_wrapper"]]
+      run-groups:
+        efanna:
+          args: { "num_trees": [8], "merge_level": [4], "iterations": [1, 2, 3, 4, 5, 6, 8, 10], "L": [10, 20], "check": [10, 30], "S": [10] }
