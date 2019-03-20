@@ -1,0 +1,12 @@
+float:
+  any:
+    pynndescent:
+      docker-tag: ann-benchmarks-pynndescent
+      module: ann_benchmarks.algorithms.graph.pynndescent
+      constructor: PyNNDescent
+      base-args: ["@metric"]
+      run-groups:
+        pynndescent:
+          args: [[1, 5, 10, 15]]
+  angular: {}
+  euclidean: {}
