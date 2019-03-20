@@ -8,5 +8,13 @@ float:
       run-groups:
         pynndescent:
           args: [[1, 5, 10, 15]]
+    kgraph:
+      docker-tag: ann-benchmarks-kgraph2
+      module: ann_benchmarks.algorithms.graph.kgraph
+      constructor: KGraph
+      base-args: ["@metric"]
+      run-groups:
+        kgraph:
+          args: { "L": [25, 50, 100], "recall": [0.2, 0.5, 0.7, 0.8, 0.9, 0.95, 0.99] }
   angular: {}
   euclidean: {}
