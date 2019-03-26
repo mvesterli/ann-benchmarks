@@ -37,5 +37,5 @@ class KGraph(BaseANN):
         self._count = count
 
     def __str__(self):
-        return 'KGraph(l=%d, recall=%d)' % (self._L, self._recall)
+        return 'KGraph(l=%d, recall=%.2f)' % (self._L, self._recall)
 
