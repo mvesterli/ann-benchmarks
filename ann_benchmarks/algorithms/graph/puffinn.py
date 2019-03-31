@@ -62,4 +62,30 @@ class ProjectionLSH(BaseANN):
     def __str__(self):
         return 'ProjectionLSH(hash=%s, hash_length=%d, repetitions=%d, block_size=%d)' % (self._hash_function, self._hash_length, self._repetitions, self._block_size)
 
+class VariableHashLSH(BaseANN):
+    def __init__(self, metric, params):
+        self._metric = metric
+        self._hash_function = params['hash_function']
+        self._recall = params['recall']
+
+    def fit(self, X):
+        self._graph = build_graph(
+            self._metric,
+            X,
+            self._count,
+            method = 'variable_hash',
+            hash_function = self._hash_function,
+            recall = self._recall)
+
+    def query(self, idx, n):
+        return self._graph[idx]
+
+    def builds_graph(self):
+        return True
+
+    def set_count(self, count):
+        self._count = count
+
+    def __str__(self):
+        return 'VariableHashLSH(hash=%s, recall: %.2f)' % (self._hash_function, self._recall)
 
