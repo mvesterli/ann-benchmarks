@@ -13,7 +13,7 @@ class PlainLSH(BaseANN):
             X,
             self._count,
             method = 'plain',
-            **params)
+            **self._params)
 
     def query(self, idx, n):
         return self._graph[idx]
