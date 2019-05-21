@@ -70,19 +70,20 @@ def train_test_split(X, test_size=10000):
     return sklearn.model_selection.train_test_split(X, test_size=test_size, random_state=1)
 
 
-def glove(out_fn, d):
+def glove(name, out_fn, d):
     import zipfile
 
-    url = 'http://nlp.stanford.edu/data/glove.twitter.27B.zip'
-    fn = os.path.join('data', 'glove.twitter.27B.zip')
+    url = 'http://nlp.stanford.edu/data/%s.zip' % name
+    fn = os.path.join('data', '%s.zip' % name)
     download(url, fn)
     with zipfile.ZipFile(fn) as z:
         print('preparing %s' % out_fn)
-        z_fn = 'glove.twitter.27B.%dd.txt' % d
+        z_fn = '%s.%dd.txt' % (name, d)
         X = []
         for line in z.open(z_fn):
             v = [float(x) for x in line.strip().split()[1:]]
             X.append(numpy.array(v))
+        X = numpy.array(X)
         X_train, X_test = train_test_split(X)
         write_output(numpy.array(X_train), numpy.array(X_test), out_fn, 'angular')
 
@@ -108,7 +109,7 @@ def _get_irisa_matrix(t, fn):
     return _load_texmex_vectors(f, n, k)
 
 
-def sift(out_fn):
+def sift(distance, out_fn):
     import tarfile
 
     url = 'ftp://ftp.irisa.fr/local/texmex/corpus/sift.tar.gz'
@@ -117,7 +118,7 @@ def sift(out_fn):
     with tarfile.open(fn, 'r:gz') as t:
         train = _get_irisa_matrix(t, 'sift/sift_base.fvecs')
         test = _get_irisa_matrix(t, 'sift/sift_query.fvecs')
-        write_output(train, test, out_fn, 'euclidean')
+        write_output(train, test, out_fn, distance)
 
 
 def gist(out_fn):
@@ -299,10 +300,13 @@ def lastfm(out_fn, n_dimensions, test_size=50000):
 DATASETS = {
     'fashion-mnist-784-euclidean': fashion_mnist,
     'gist-960-euclidean': gist,
-    'glove-25-angular': lambda out_fn: glove(out_fn, 25),
-    'glove-50-angular': lambda out_fn: glove(out_fn, 50),
-    'glove-100-angular': lambda out_fn: glove(out_fn, 100),
-    'glove-200-angular': lambda out_fn: glove(out_fn, 200),
+    'glove-25-angular': lambda out_fn: glove('glove.twitter.27B', out_fn, 25),
+    'glove-50-angular': lambda out_fn: glove('glove.twitter.27B', out_fn, 50),
+    'glove-100-angular': lambda out_fn: glove('glove.twitter.27B', out_fn, 100),
+    'glove-200-angular': lambda out_fn: glove('glove.twitter.27B', out_fn, 200),
+    'glove-2m-300-angular-middle': lambda out_fn: None,
+    'glove-wiki-100': lambda out_fn: glove('glove.6B', out_fn, 100),
+    'gnews-300-angular-middle': lambda out_fn: None,
     'mnist-784-euclidean': mnist,
     'random-xs-20-euclidean': lambda out_fn: random(out_fn, 20, 10000, 100, 'euclidean'),
     'random-s-100-euclidean': lambda out_fn: random(out_fn, 100, 100000, 1000, 'euclidean'),
@@ -311,7 +315,8 @@ DATASETS = {
     'random-xs-16-hamming': lambda out_fn: random_bitstring(out_fn, 16, 10000, 100),
     'random-s-128-hamming': lambda out_fn: random_bitstring(out_fn, 128, 50000, 1000),
     'random-l-256-hamming': lambda out_fn: random_bitstring(out_fn, 256, 100000, 1000),
-    'sift-128-euclidean': sift,
+    'sift-128-euclidean': lambda out_fn: sift('euclidean', out_fn),
+    'sift-128-angular': lambda out_fn: sift('angular', out_fn),
     'nytimes-256-angular': lambda out_fn: nytimes(out_fn, 256),
     'nytimes-16-angular': lambda out_fn: nytimes(out_fn, 16),
     'word2bits-800-hamming': lambda out_fn: word2bits(out_fn, '400K', 'w2b_bitlevel1_size800_vocab400K'),
