@@ -57,7 +57,7 @@ def compute_all_metrics(true_nn_distances, run, properties):
         v = metric["function"](true_nn_distances, run_distances, properties)
         results[name] = v
         if v:
-            print('%s: %g' % (name, v))
+            print('%s: %s' % (name, v))
     return (algo, algo_name, results)
 
 def generate_n_colors(n):

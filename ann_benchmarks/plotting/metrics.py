@@ -8,6 +8,16 @@ def knn(dataset_distances, run_distances, count, epsilon=1e-10):
         actual += len(within)
     return float(actual) / float(total)
 
+def recall_distribution(dataset_distances, run_distances, count, epsilon=1e-10):
+    total = len(run_distances) * count
+    dist = [["{0:.2f}".format(float(i)/count), 0] for i in range(0, count+1)]
+    for true_distances, found_distances in zip(dataset_distances, run_distances):
+        within = [d for d in found_distances[:count] if d <= true_distances[count - 1] + epsilon]
+        dist[len(within)][1] += 1
+    for i in range(0, count+1):
+        dist[i][1] /= float(len(dataset_distances))
+    return dist
+
 def epsilon(dataset_distances, run_distances, count, epsilon=0.01):
     total = len(run_distances) * count
     actual = 0
@@ -46,6 +56,11 @@ all_metrics = {
         "function": lambda true_distances, run_distances, run_attrs: knn(true_distances, run_distances, run_attrs["count"]),
         "worst": float("-inf"),
         "lim": [0.0, 1.03]
+    },
+    "recall_distribution": {
+        "description": "Recall distribution",
+        "function": lambda true_distances, run_distances, run_attrs: recall_distribution(true_distances, run_distances, run_attrs["count"]),
+        "worst": float("-inf")
     },
     "epsilon": {
         "description": "Epsilon 0.01 Recall",
